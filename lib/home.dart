@@ -16,16 +16,11 @@ class _HomeState extends State<Home> {
   String _newTodo = "";
 
   final ScrollController _scrollController = ScrollController();
-  final TextEditingController _textController = TextEditingController();
 
   late FocusNode _textFieldFocusNode;
 
   @override
   void initState() {
-    _textController.addListener(() {
-      _onTextFieldValueChanged(_newTodo);
-    });
-
     _textFieldFocusNode = FocusNode();
     super.initState();
   }
@@ -33,13 +28,14 @@ class _HomeState extends State<Home> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _textController.dispose();
     _textFieldFocusNode.dispose();
     super.dispose();
   }
 
   void _onTextFieldValueChanged(String newValue) {
     developer.log("NEW VALUE = $newValue");
+    _newTodo = newValue;
+    developer.log("NEW TODO = $_newTodo");
   }
 
   void _addTodo(String todo) {
@@ -70,9 +66,8 @@ class _HomeState extends State<Home> {
                 height: 50,
                 child: TextField(
                   focusNode: _textFieldFocusNode,
-                  controller: _textController,
                   onTap: () => _textFieldFocusNode.requestFocus(),
-                  onChanged: (value) => _newTodo = value,
+                  onChanged: (value) => _onTextFieldValueChanged(value),
                   onSubmitted: (value) {
                     _newTodo = value;
                     _textFieldFocusNode.unfocus();
