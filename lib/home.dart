@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 
 class Home extends StatefulWidget {
   const Home({
@@ -10,29 +11,50 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final List<String> listOfTodo = [];
+  final List<String> _listOfTodo = [];
+
+  String _newTodo = "";
 
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _textController = TextEditingController();
+
+  late FocusNode _textFieldFocusNode;
+
+  @override
+  void initState() {
+    _textController.addListener(() {
+      _onTextFieldValueChanged(_newTodo);
+    });
+
+    _textFieldFocusNode = FocusNode();
+    super.initState();
+  }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _textController.dispose();
+    _textFieldFocusNode.dispose();
     super.dispose();
   }
 
-  void addTodo(String todo) {
+  void _onTextFieldValueChanged(String newValue) {
+    developer.log("NEW VALUE = $newValue");
+  }
+
+  void _addTodo(String todo) {
     setState(() {
-      listOfTodo.add(todo);
+      _listOfTodo.add(todo);
     });
   }
 
-  void removeTodo(int index) {
+  void _removeTodo(int index) {
     setState(() {
-      listOfTodo.removeAt(index);
+      _listOfTodo.removeAt(index);
     });
   }
 
-  void showAddDialog() {
+  void _showAddDialog() {
     showDialog(
         barrierDismissible: true,
         context: context,
@@ -44,10 +66,18 @@ class _HomeState extends State<Home> {
                 height: 50,
                 child: Center(child: Text("Add a new thing to do !")),
               ),
-              const SizedBox(
+               SizedBox(
                 height: 50,
                 child: TextField(
-                  decoration: InputDecoration(
+                  focusNode: _textFieldFocusNode,
+                  controller: _textController,
+                  onTap: () => _textFieldFocusNode.requestFocus(),
+                  onChanged: (value) => _newTodo = value,
+                  onSubmitted: (value) {
+                    _newTodo = value;
+                    _textFieldFocusNode.unfocus();
+                  },
+                  decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       hintText: "Enter your thing to do"),
                 ),
@@ -69,9 +99,9 @@ class _HomeState extends State<Home> {
                         )),
                     TextButton(
                         onPressed: () {
-                          addTodo("TODO");
+                          _addTodo(_newTodo);
                           Navigator.pop(context);
-                          print(listOfTodo); //DEBUG TO DELETE
+                          developer.log("CURRENT LIST OF TODOS = $_listOfTodo");//DEBUG TO DELETE
                         },
                         child: const Text(
                           "Add",
@@ -105,7 +135,7 @@ class _HomeState extends State<Home> {
           )),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showAddDialog();
+          _showAddDialog();
         },
         child: const Icon(
           Icons.add,
