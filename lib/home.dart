@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
+
 
 class Home extends StatefulWidget {
   const Home({
@@ -11,7 +13,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final List<String> _listOfTodo = [];
+  final List<Map<String, bool>> _listOfTodo = [];
 
   String _newTodo = "";
 
@@ -33,14 +35,12 @@ class _HomeState extends State<Home> {
   }
 
   void _onTextFieldValueChanged(String newValue) {
-    developer.log("NEW VALUE = $newValue");
     _newTodo = newValue;
-    developer.log("NEW TODO = $_newTodo");
   }
 
   void _addTodo(String todo) {
     setState(() {
-      _listOfTodo.add(todo);
+      _listOfTodo.add({todo: false});
     });
   }
 
@@ -95,8 +95,8 @@ class _HomeState extends State<Home> {
                     TextButton(
                         onPressed: () {
                           _addTodo(_newTodo);
+                          _textFieldFocusNode.unfocus();
                           Navigator.pop(context);
-                          developer.log("CURRENT LIST OF TODOS = $_listOfTodo");//DEBUG TO DELETE
                         },
                         child: const Text(
                           "Add",
@@ -120,15 +120,27 @@ class _HomeState extends State<Home> {
       ),
       body: Scrollbar(
           controller: _scrollController,
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            child: Column(children: const <Widget>[
-              SizedBox(
-                height: 200,
-              ),
-            ]),
-          )),
+          child: ListView.builder(
+            itemCount: _listOfTodo.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  title: Text(_listOfTodo[index].keys.first),
+                  trailing: Checkbox(
+                    value: _listOfTodo[index][_listOfTodo[index].keys.first],
+                   onChanged: (value) {
+                     _listOfTodo[index][_listOfTodo[index].keys.first] = value!;
+                     setState(() {
+                       Timer(const Duration(seconds: 1), () => _removeTodo(index));
+                     });
+                   },
+                  ),
+                );
+              })
+          ),
+
       floatingActionButton: FloatingActionButton(
+        tooltip: "Add a Todo",
         onPressed: () {
           _showAddDialog();
         },
